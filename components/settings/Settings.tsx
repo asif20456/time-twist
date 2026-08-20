@@ -1,10 +1,11 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Settings as SettingsIcon, Sun, Moon, Monitor, Clock, Volume2, Trash2, CheckCircle, ShieldCheck, Sparkles, Calendar, RotateCcw, Sliders, Download, Wifi, WifiOff, Smartphone, Globe } from 'lucide-react';
+import { Settings as SettingsIcon, Sun, Moon, Monitor, Clock, Volume2, Trash2, CheckCircle, ShieldCheck, Sparkles, Calendar, RotateCcw, Sliders, Download, Wifi, WifiOff, Smartphone, Globe, Search } from 'lucide-react';
 import { ThemeMode } from '@/hooks/useTheme';
 import { soundManager } from '@/lib/audio';
 import { useOnlineStatus } from '@/hooks/useOnlineStatus';
+import { ALL_TIMEZONES, POPULAR_TIMEZONES, getTimezoneOffsetFormatted } from '@/lib/timezones';
 
 interface SettingsProps {
   theme: ThemeMode;
@@ -14,6 +15,9 @@ interface SettingsProps {
   isManualTime?: boolean;
   setManualTimeAndDate?: (dateStr: string, timeStr: string) => boolean;
   resetToDeviceTime?: () => void;
+  userTimezone?: string;
+  setTimezone?: (tz: string) => void;
+  resetTimezone?: () => void;
 }
 
 export const Settings: React.FC<SettingsProps> = ({
@@ -24,6 +28,9 @@ export const Settings: React.FC<SettingsProps> = ({
   isManualTime = false,
   setManualTimeAndDate,
   resetToDeviceTime,
+  userTimezone,
+  setTimezone,
+  resetTimezone,
 }) => {
   const isOnline = useOnlineStatus();
   const todayStr = new Date().toISOString().split('T')[0];
@@ -32,6 +39,8 @@ export const Settings: React.FC<SettingsProps> = ({
   const [manualDate, setManualDate] = useState(todayStr);
   const [manualTime, setManualTime] = useState(nowTimeStr);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [tzSearch, setTzSearch] = useState('');
+  const [tzSuccess, setTzSuccess] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [isStandalone, setIsStandalone] = useState(false);
 
@@ -176,6 +185,134 @@ export const Settings: React.FC<SettingsProps> = ({
                 </button>
               );
             })}
+          </div>
+        </div>
+
+        {/* Timezone & Region Settings */}
+        <div className="card-glass p-5 sm:p-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-[var(--border-color)] mb-4">
+            <div>
+              <div className="flex items-center gap-2">
+                <Globe className="w-5 h-5 text-blue-400" />
+                <h3 className="text-base font-bold text-[var(--text-primary)]">Primary Time Zone</h3>
+              </div>
+              <p className="text-xs text-[var(--text-secondary)] mt-0.5">
+                Set your primary time zone for the main clock and dashboard displays
+              </p>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-400 font-semibold text-xs flex-shrink-0 font-mono">
+                {userTimezone || 'Local Device Time'}
+              </span>
+              {resetTimezone && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    resetTimezone();
+                    setTzSuccess(true);
+                    setTimeout(() => setTzSuccess(false), 3000);
+                  }}
+                  className="px-3 py-1 rounded-full bg-[var(--bg-secondary)] border border-[var(--border-color)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-xs font-semibold flex items-center gap-1 transition-all"
+                  title="Reset to local device timezone"
+                >
+                  <RotateCcw className="w-3 h-3" />
+                  <span>Use Device Time</span>
+                </button>
+              )}
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            {/* Search Input */}
+            <div className="relative">
+              <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
+              <input
+                type="text"
+                value={tzSearch}
+                onChange={(e) => setTzSearch(e.target.value)}
+                placeholder="Search city, country or time zone (e.g. New York, Tokyo, London, Paris, Karachi)..."
+                className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-[var(--bg-secondary)] border border-[var(--border-color)] text-xs sm:text-sm text-[var(--text-primary)] focus:outline-none focus:border-blue-500 transition-colors font-mono"
+              />
+            </div>
+
+            {/* Popular Timezone Quick Selection Chips */}
+            <div>
+              <p className="text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-2">
+                Popular Cities & Timezones
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {POPULAR_TIMEZONES.map((city) => {
+                  const isSelected = userTimezone === city.timezone;
+                  return (
+                    <button
+                      key={city.id}
+                      onClick={() => {
+                        if (setTimezone) {
+                          setTimezone(city.timezone);
+                          setTzSuccess(true);
+                          setTimeout(() => setTzSuccess(false), 3000);
+                        }
+                      }}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-medium flex items-center gap-1.5 border transition-all ${
+                        isSelected
+                          ? 'bg-blue-600/20 border-blue-500 text-blue-400 font-bold shadow-sm'
+                          : 'bg-[var(--bg-secondary)] border-[var(--border-color)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-blue-500/40'
+                      }`}
+                    >
+                      <span>{city.flag}</span>
+                      <span>{city.city}</span>
+                      <span className="opacity-60 text-[10px]">({getTimezoneOffsetFormatted(city.timezone)})</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Full Search Results Dropdown List */}
+            {tzSearch.trim().length > 0 && (
+              <div className="max-h-56 overflow-y-auto rounded-xl border border-[var(--border-color)] bg-[var(--bg-secondary)] divide-y divide-[var(--border-color)]">
+                {ALL_TIMEZONES.filter(
+                  (c) =>
+                    c.city.toLowerCase().includes(tzSearch.toLowerCase()) ||
+                    c.country.toLowerCase().includes(tzSearch.toLowerCase()) ||
+                    c.timezone.toLowerCase().includes(tzSearch.toLowerCase())
+                ).map((city) => (
+                  <button
+                    key={city.id}
+                    onClick={() => {
+                      if (setTimezone) {
+                        setTimezone(city.timezone);
+                        setTzSearch('');
+                        setTzSuccess(true);
+                        setTimeout(() => setTzSuccess(false), 3000);
+                      }
+                    }}
+                    className={`w-full px-4 py-2.5 text-left text-xs sm:text-sm flex items-center justify-between hover:bg-blue-500/10 transition-colors ${
+                      userTimezone === city.timezone ? 'bg-blue-500/10 font-bold text-blue-400' : 'text-[var(--text-primary)]'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="text-base">{city.flag}</span>
+                      <div>
+                        <p className="font-semibold">{city.city}, {city.country}</p>
+                        <p className="text-[10px] text-[var(--text-muted)] font-mono">{city.timezone}</p>
+                      </div>
+                    </div>
+                    <span className="text-xs font-mono text-[var(--text-muted)]">
+                      {getTimezoneOffsetFormatted(city.timezone)}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {tzSuccess && (
+              <p className="text-xs text-emerald-400 font-medium flex items-center gap-1.5 mt-2">
+                <CheckCircle className="w-4 h-4" />
+                <span>Primary time zone updated successfully! Clocks are now displayed in selected timezone.</span>
+              </p>
+            )}
           </div>
         </div>
 

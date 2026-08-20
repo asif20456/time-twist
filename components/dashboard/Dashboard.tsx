@@ -22,7 +22,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   userTimezone,
   setActiveTab,
 }) => {
-  const clock = getFormattedClock(now, is24Hour);
+  const clock = getFormattedClock(now, is24Hour, userTimezone);
 
   return (
     <div className="w-full max-w-6xl mx-auto px-2 sm:px-4 py-4 sm:py-6 space-y-6 sm:space-y-8 overflow-hidden">
@@ -43,7 +43,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
               seconds={clock.seconds}
               dayPeriod={clock.dayPeriod}
               fullDateStr={clock.fullDateStr}
-              timezoneName={userTimezone}
+              timezoneName={clock.timezoneName || userTimezone}
               is24Hour={is24Hour}
               isManualTime={isManualTime}
             />
@@ -51,7 +51,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
           {/* Analog Clock Section */}
           <div className="lg:col-span-5 flex justify-center w-full">
-            <AnalogClock date={now} />
+            <AnalogClock date={now} timezone={userTimezone} />
           </div>
 
         </div>

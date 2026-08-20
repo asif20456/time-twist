@@ -9,16 +9,23 @@ export function useClock() {
   const [is24Hour, setIs24Hour] = useState<boolean>(false);
   const [isManualTime, setIsManualTime] = useState<boolean>(false);
   const [manualOffsetMs, setManualOffsetMs] = useState<number>(0);
+  const [userTimezone, setUserTimezoneState] = useState<string>('');
   const [mounted, setMounted] = useState<boolean>(false);
+
+  const defaultTimezone = typeof Intl !== 'undefined'
+    ? Intl.DateTimeFormat().resolvedOptions().timeZone
+    : 'UTC';
 
   useEffect(() => {
     const saved24 = getItem<boolean>('time-twist-24h', false);
     const savedManualMode = getItem<boolean>('time-twist-manual-mode', false);
     const savedOffset = getItem<number>('time-twist-manual-offset', 0);
+    const savedTz = getItem<string>('time-twist-user-timezone', '');
 
     setIs24Hour(saved24);
     setIsManualTime(savedManualMode);
     setManualOffsetMs(savedOffset);
+    setUserTimezoneState(savedTz || defaultTimezone);
     setMounted(true);
 
     const calcNow = () => {
@@ -49,6 +56,16 @@ export function useClock() {
     });
   };
 
+  const setTimezone = (tz: string) => {
+    setUserTimezoneState(tz);
+    setItem('time-twist-user-timezone', tz);
+  };
+
+  const resetTimezone = () => {
+    setUserTimezoneState(defaultTimezone);
+    setItem('time-twist-user-timezone', defaultTimezone);
+  };
+
   const setManualTimeAndDate = (dateStr: string, timeStr: string) => {
     try {
       const targetDate = new Date(`${dateStr}T${timeStr}:00`);
@@ -75,8 +92,8 @@ export function useClock() {
     setNow(new Date());
   };
 
-  const formatted = getFormattedClock(now, is24Hour);
-  const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const activeTz = userTimezone || defaultTimezone;
+  const formatted = getFormattedClock(now, is24Hour, activeTz);
 
   return {
     now,
@@ -87,7 +104,9 @@ export function useClock() {
     setManualTimeAndDate,
     resetToDeviceTime,
     formatted,
-    userTimezone,
+    userTimezone: activeTz,
+    setTimezone,
+    resetTimezone,
     mounted
   };
 }

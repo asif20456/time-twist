@@ -25,6 +25,8 @@ export default function Home() {
     setManualTimeAndDate,
     resetToDeviceTime,
     userTimezone,
+    setTimezone,
+    resetTimezone,
     mounted: clockMounted
   } = useClock();
   const { theme, setTheme, mounted: themeMounted } = useTheme();
@@ -86,6 +88,9 @@ export default function Home() {
               isManualTime={isManualTime}
               setManualTimeAndDate={setManualTimeAndDate}
               resetToDeviceTime={resetToDeviceTime}
+              userTimezone={userTimezone}
+              setTimezone={setTimezone}
+              resetTimezone={resetTimezone}
             />
           )}
         </div>
