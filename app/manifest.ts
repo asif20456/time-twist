@@ -4,23 +4,101 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: 'Time Twist — Smart Clock & Time Tools',
     short_name: 'Time Twist',
-    description: 'A beautiful, lightweight, feature-rich clock, world clock, stopwatch, countdown timer, and alarm application.',
+    description: 'A beautiful, lightweight, feature-rich clock, world clock, stopwatch, countdown timer, Pomodoro, and alarm application. Works fully offline as a PWA.',
     start_url: '/',
+    scope: '/',
+    id: '/',
     display: 'standalone',
+    display_override: ['standalone', 'minimal-ui'],
     background_color: '#090d16',
     theme_color: '#3b82f6',
     orientation: 'portrait-primary',
+    lang: 'en',
+    dir: 'ltr',
+    categories: ['utilities', 'productivity'],
+    prefer_related_applications: false,
+    shortcuts: [
+      {
+        name: 'Stopwatch',
+        short_name: 'Stopwatch',
+        description: 'Open the Stopwatch',
+        url: '/',
+        icons: [
+          {
+            src: '/icons/icon-192.png',
+            sizes: '192x192',
+          },
+        ],
+      },
+      {
+        name: 'Pomodoro Timer',
+        short_name: 'Pomodoro',
+        description: 'Start a Pomodoro focus session',
+        url: '/',
+        icons: [
+          {
+            src: '/icons/icon-192.png',
+            sizes: '192x192',
+          },
+        ],
+      },
+    ],
     icons: [
+      {
+        src: '/icons/icon-72.png',
+        sizes: '72x72',
+        type: 'image/png',
+      },
+      {
+        src: '/icons/icon-96.png',
+        sizes: '96x96',
+        type: 'image/png',
+      },
+      {
+        src: '/icons/icon-128.png',
+        sizes: '128x128',
+        type: 'image/png',
+      },
+      {
+        src: '/icons/icon-144.png',
+        sizes: '144x144',
+        type: 'image/png',
+      },
+      {
+        src: '/icons/icon-152.png',
+        sizes: '152x152',
+        type: 'image/png',
+      },
       {
         src: '/icons/icon-192.png',
         sizes: '192x192',
-        type: 'image/png'
+        type: 'image/png',
+        purpose: 'any',
+      },
+      {
+        src: '/icons/icon-192-maskable.png',
+        sizes: '192x192',
+        type: 'image/png',
+        purpose: 'maskable',
+      },
+      {
+        src: '/icons/icon-384.png',
+        sizes: '384x384',
+        type: 'image/png',
       },
       {
         src: '/icons/icon-512.png',
         sizes: '512x512',
-        type: 'image/png'
-      }
-    ]
+        type: 'image/png',
+        purpose: 'any',
+      },
+      {
+        src: '/icons/icon-512-maskable.png',
+        sizes: '512x512',
+        type: 'image/png',
+        purpose: 'maskable',
+      },
+    ],
+    screenshots: [],
   };
 }
