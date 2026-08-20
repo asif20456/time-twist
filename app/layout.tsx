@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   applicationName: 'Time Twist',
   authors: [{ name: 'Time Twist Team' }],
   keywords: ['clock', 'world clock', 'stopwatch', 'timer', 'alarm', 'pwa', 'time twist'],
-  manifest: '/manifest.webmanifest',
+  manifest: '/manifest.json',
   icons: {
     icon: '/favicon.ico',
     apple: '/icons/icon-192.png',
@@ -40,6 +40,8 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
       <head>
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
         {/* Anti-FOUC theme script */}
         <script
           dangerouslySetInnerHTML={{
