@@ -47,6 +47,69 @@ export const AnalogClock: React.FC<AnalogClockProps> = ({ date }) => {
         <span className="absolute bottom-7 text-xs font-bold font-mono text-[var(--text-secondary)] select-none">6</span>
         <span className="absolute left-7 text-xs font-bold font-mono text-[var(--text-secondary)] select-none">9</span>
 
+        {/* Black Wolf Logo */}
+        <div className="absolute top-[21%] flex flex-col items-center justify-center pointer-events-none select-none z-0">
+          <svg
+            width="38"
+            height="38"
+            viewBox="0 0 100 100"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            className="drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)]"
+          >
+            <defs>
+              <linearGradient id="blackWolfGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#1e293b" />
+                <stop offset="60%" stopColor="#0f172a" />
+                <stop offset="100%" stopColor="#020617" />
+              </linearGradient>
+              <linearGradient id="wolfCyanGlow" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#38bdf8" />
+                <stop offset="100%" stopColor="#0284c7" />
+              </linearGradient>
+            </defs>
+
+            {/* Crest Outer Ring / Shield (Subtle Dark Metallic Frame) */}
+            <circle cx="50" cy="50" r="46" fill="#090d16" fillOpacity="0.7" stroke="#334155" strokeWidth="1.5" strokeDasharray="4 2" />
+
+            {/* Black Wolf Head Silhouette & Geometric Facets */}
+            {/* Base Head Contour */}
+            <path
+              d="M50 84 L32 62 L18 46 L24 26 L14 8 L34 20 L50 26 L66 20 L86 8 L76 26 L82 46 L68 62 Z"
+              fill="url(#blackWolfGradient)"
+              stroke="#475569"
+              strokeWidth="1.5"
+              strokeLinejoin="round"
+            />
+
+            {/* Ears Internal Shadows */}
+            <polygon points="24,26 17,11 31,21" fill="#020617" />
+            <polygon points="76,26 83,11 69,21" fill="#020617" />
+
+            {/* Crown / Forehead Shading */}
+            <polygon points="50,26 34,20 38,36 50,44" fill="#334155" fillOpacity="0.4" />
+            <polygon points="50,26 66,20 62,36 50,44" fill="#1e293b" fillOpacity="0.6" />
+
+            {/* Cheek & Jaw Angles */}
+            <polygon points="38,36 18,46 32,62 44,52" fill="#0f172a" />
+            <polygon points="62,36 82,46 68,62 56,52" fill="#1e293b" />
+
+            {/* Snout Bridge & Nose */}
+            <polygon points="50,44 38,36 44,52 50,65" fill="#1e293b" />
+            <polygon points="50,44 62,36 56,52 50,65" fill="#334155" fillOpacity="0.5" />
+            <polygon points="50,65 32,62 50,84 68,62" fill="#020617" />
+
+            {/* Nose Tip */}
+            <polygon points="45,64 55,64 50,70" fill="#38bdf8" fillOpacity="0.9" />
+
+            {/* Piercing Wolf Eyes */}
+            <polygon points="31,41 42,44 36,46" fill="url(#wolfCyanGlow)" />
+            <polygon points="69,41 58,44 64,46" fill="url(#wolfCyanGlow)" />
+          </svg>
+          <span className="text-[8px] font-bold tracking-[0.25em] text-[var(--text-muted)] uppercase opacity-75 mt-0.5 font-mono">WOLF</span>
+        </div>
+
+
         {/* Hour Hand */}
         <div
           className="absolute w-full h-full flex justify-center items-center pointer-events-none"
