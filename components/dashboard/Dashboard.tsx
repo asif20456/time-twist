@@ -4,7 +4,7 @@ import React from 'react';
 import { DigitalClock } from '@/components/clock/DigitalClock';
 import { AnalogClock } from '@/components/clock/AnalogClock';
 import { NavTab } from '@/components/navigation/Navigation';
-import { Globe, Timer, Hourglass, AlarmClock, ChevronRight } from 'lucide-react';
+import { Globe, Timer, Hourglass, AlarmClock, ChevronRight, Brain, ArrowRightLeft } from 'lucide-react';
 import { getFormattedClock } from '@/lib/time';
 
 interface DashboardProps {
@@ -59,7 +59,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
       </div>
 
       {/* Quick Action Tools Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         
         <button
           onClick={() => setActiveTab('world')}
@@ -129,6 +129,42 @@ export const Dashboard: React.FC<DashboardProps> = ({
             <h3 className="text-base font-bold text-[var(--text-primary)]">Alarms</h3>
             <p className="text-xs text-[var(--text-secondary)] mt-1.5 leading-relaxed">
               Manage daily alarms, repeat days, and snooze options
+            </p>
+          </div>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('pomodoro')}
+          className="card-glass p-5 sm:p-6 text-left group hover:scale-[1.02] transition-all flex flex-col justify-between"
+        >
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-12 h-12 rounded-2xl bg-red-500/15 flex items-center justify-center text-red-400 group-hover:bg-red-500 group-hover:text-white transition-colors">
+                <Brain className="w-6 h-6" />
+              </div>
+              <ChevronRight className="w-4 h-4 text-[var(--text-muted)] group-hover:text-red-400 group-hover:translate-x-1 transition-all" />
+            </div>
+            <h3 className="text-base font-bold text-[var(--text-primary)]">Pomodoro</h3>
+            <p className="text-xs text-[var(--text-secondary)] mt-1.5 leading-relaxed">
+              Focus timer with work/break intervals and session stats
+            </p>
+          </div>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('converter')}
+          className="card-glass p-5 sm:p-6 text-left group hover:scale-[1.02] transition-all flex flex-col justify-between"
+        >
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-12 h-12 rounded-2xl bg-cyan-500/15 flex items-center justify-center text-cyan-400 group-hover:bg-cyan-500 group-hover:text-white transition-colors">
+                <ArrowRightLeft className="w-6 h-6" />
+              </div>
+              <ChevronRight className="w-4 h-4 text-[var(--text-muted)] group-hover:text-cyan-400 group-hover:translate-x-1 transition-all" />
+            </div>
+            <h3 className="text-base font-bold text-[var(--text-primary)]">Time Converter</h3>
+            <p className="text-xs text-[var(--text-secondary)] mt-1.5 leading-relaxed">
+              Convert dates and times across world timezones
             </p>
           </div>
         </button>

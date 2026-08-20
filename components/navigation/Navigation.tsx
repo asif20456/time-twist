@@ -1,9 +1,9 @@
 'use client';
 
 import React from 'react';
-import { Clock, Globe, Timer, AlarmClock, Hourglass, Settings } from 'lucide-react';
+import { Clock, Globe, Timer, AlarmClock, Hourglass, Settings, Brain, ArrowRightLeft } from 'lucide-react';
 
-export type NavTab = 'clock' | 'world' | 'stopwatch' | 'timer' | 'alarm' | 'settings';
+export type NavTab = 'clock' | 'world' | 'stopwatch' | 'timer' | 'alarm' | 'pomodoro' | 'converter' | 'settings';
 
 interface NavigationProps {
   activeTab: NavTab;
@@ -17,6 +17,8 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab 
     { id: 'stopwatch', label: 'Stopwatch', shortLabel: 'Stopwatch', icon: Timer },
     { id: 'timer', label: 'Timer', shortLabel: 'Timer', icon: Hourglass },
     { id: 'alarm', label: 'Alarm', shortLabel: 'Alarm', icon: AlarmClock },
+    { id: 'pomodoro', label: 'Pomodoro', shortLabel: 'Pomo', icon: Brain },
+    { id: 'converter', label: 'Converter', shortLabel: 'Convert', icon: ArrowRightLeft },
     { id: 'settings', label: 'Settings', shortLabel: 'Settings', icon: Settings },
   ];
 

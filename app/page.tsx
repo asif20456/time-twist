@@ -8,10 +8,13 @@ import { WorldClock } from '@/components/world-clock/WorldClock';
 import { Stopwatch } from '@/components/stopwatch/Stopwatch';
 import { CountdownTimer } from '@/components/timer/CountdownTimer';
 import { AlarmManager } from '@/components/alarm/AlarmManager';
+import { PomodoroTimer } from '@/components/pomodoro/PomodoroTimer';
+import { DateTimeConverter } from '@/components/converter/DateTimeConverter';
 import { Settings } from '@/components/settings/Settings';
 import { useClock } from '@/hooks/useClock';
 import { useTheme } from '@/hooks/useTheme';
 import { useOnlineStatus } from '@/hooks/useOnlineStatus';
+import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import { Wifi, WifiOff, Hourglass } from 'lucide-react';
 
 export default function Home() {
@@ -30,6 +33,9 @@ export default function Home() {
     mounted: clockMounted
   } = useClock();
   const { theme, setTheme, mounted: themeMounted } = useTheme();
+
+  // Keyboard shortcuts
+  useKeyboardShortcuts({ setActiveTab, toggle24Hour });
 
   if (!clockMounted || !themeMounted) {
     return (
@@ -78,6 +84,10 @@ export default function Home() {
           {activeTab === 'timer' && <CountdownTimer />}
 
           {activeTab === 'alarm' && <AlarmManager />}
+
+          {activeTab === 'pomodoro' && <PomodoroTimer />}
+
+          {activeTab === 'converter' && <DateTimeConverter />}
 
           {activeTab === 'settings' && (
             <Settings
