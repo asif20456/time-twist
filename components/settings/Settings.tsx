@@ -6,7 +6,7 @@ import { ThemeMode, ThemeAccent, ACCENT_PRESETS } from '@/hooks/useTheme';
 import { soundManager } from '@/lib/audio';
 import { useOnlineStatus } from '@/hooks/useOnlineStatus';
 import { ALL_TIMEZONES, POPULAR_TIMEZONES, getTimezoneOffsetFormatted } from '@/lib/timezones';
-import { ScreensaverSettings } from '@/hooks/useIdleScreensaver';
+import { ScreensaverSettings, IdleMinutesOption } from '@/hooks/useIdleScreensaver';
 
 interface SettingsProps {
   theme: ThemeMode;
@@ -474,17 +474,17 @@ export const Settings: React.FC<SettingsProps> = ({
               <div>
                 <div className="flex items-center gap-2">
                   <Timer className="w-5 h-5 text-indigo-400" />
-                  <h3 className="text-base font-bold text-[var(--text-primary)]">Idle Screensaver</h3>
+                  <h3 className="text-base font-bold text-[var(--text-primary)]">Screen Saver / Ambient Mode</h3>
                 </div>
                 <p className="text-xs text-[var(--text-secondary)] mt-0.5">
-                  Show a fullscreen clock when you haven't interacted for a while
+                  Fullscreen clock when idle, always, or on a schedule
                 </p>
               </div>
 
               {/* Enable / Disable toggle */}
               <button
                 onClick={() => setScreensaverSettings({ enabled: !screensaverSettings.enabled })}
-                className={`relative inline-flex h-7 w-13 items-center rounded-full transition-colors flex-shrink-0 ${
+                className={`relative inline-flex h-7 items-center rounded-full transition-colors flex-shrink-0 ${
                   screensaverSettings.enabled ? 'bg-indigo-600' : 'bg-[var(--bg-secondary)] border border-[var(--border-color)]'
                 }`}
                 style={{ width: '52px' }}
@@ -501,62 +501,238 @@ export const Settings: React.FC<SettingsProps> = ({
             </div>
 
             {screensaverSettings.enabled && (
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="space-y-5">
+                {/* Start Mode Selection */}
                 <div>
-                  <p className="text-sm font-semibold text-[var(--text-primary)]">Idle Time</p>
-                  <p className="text-xs text-[var(--text-secondary)] mt-0.5">
-                    Screensaver activates after{' '}
-                    <span className="text-indigo-400 font-bold">{screensaverSettings.idleMinutes} minute{screensaverSettings.idleMinutes !== 1 ? 's' : ''}</span>{' '}
-                    of inactivity
-                  </p>
-                </div>
-
-                {/* Stepper */}
-                <div className="flex items-center gap-2 flex-shrink-0">
-                  <button
-                    onClick={() =>
-                      setScreensaverSettings({ idleMinutes: Math.max(1, screensaverSettings.idleMinutes - 1) })
-                    }
-                    disabled={screensaverSettings.idleMinutes <= 1}
-                    className="w-9 h-9 rounded-xl bg-[var(--bg-secondary)] border border-[var(--border-color)] flex items-center justify-center text-[var(--text-primary)] hover:border-indigo-500/40 disabled:opacity-30 transition-all"
-                    aria-label="Decrease idle time"
-                  >
-                    <Minus className="w-4 h-4" />
-                  </button>
-
-                  <div className="grid grid-cols-5 gap-1.5">
-                    {[1, 2, 3, 5, 10].map((min) => (
+                  <p className="text-sm font-semibold text-[var(--text-primary)] mb-2">Start Mode</p>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {([
+                      { id: 'never', label: 'Never', desc: 'Only manual' },
+                      { id: 'idle', label: 'On Idle', desc: 'After inactivity' },
+                      { id: 'always', label: 'Always', desc: 'Always active' },
+                      { id: 'scheduled', label: 'Scheduled', desc: 'Time window' },
+                    ] as const).map((mode) => (
                       <button
-                        key={min}
-                        onClick={() => setScreensaverSettings({ idleMinutes: min })}
-                        className={`w-9 h-9 rounded-xl text-xs font-bold transition-all border ${
-                          screensaverSettings.idleMinutes === min
-                            ? 'bg-indigo-600/20 border-indigo-500 text-indigo-400 shadow-sm shadow-indigo-500/20'
-                            : 'bg-[var(--bg-secondary)] border-[var(--border-color)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-indigo-500/30'
+                        key={mode.id}
+                        onClick={() => setScreensaverSettings({ startMode: mode.id })}
+                        className={`p-3 rounded-xl text-left border transition-all ${
+                          screensaverSettings.startMode === mode.id
+                            ? 'bg-indigo-600/15 border-indigo-500 shadow-md shadow-indigo-500/10'
+                            : 'bg-[var(--bg-secondary)] border-[var(--border-color)] hover:border-indigo-500/30'
                         }`}
                       >
-                        {min}m
+                        <p className={`text-xs font-bold ${screensaverSettings.startMode === mode.id ? 'text-indigo-400' : 'text-[var(--text-primary)]'}`}>{mode.label}</p>
+                        <p className="text-[10px] text-[var(--text-muted)] mt-0.5">{mode.desc}</p>
                       </button>
                     ))}
                   </div>
+                </div>
 
-                  <button
-                    onClick={() =>
-                      setScreensaverSettings({ idleMinutes: Math.min(10, screensaverSettings.idleMinutes + 1) })
-                    }
-                    disabled={screensaverSettings.idleMinutes >= 10}
-                    className="w-9 h-9 rounded-xl bg-[var(--bg-secondary)] border border-[var(--border-color)] flex items-center justify-center text-[var(--text-primary)] hover:border-indigo-500/40 disabled:opacity-30 transition-all"
-                    aria-label="Increase idle time"
-                  >
-                    <Plus className="w-4 h-4" />
-                  </button>
+                {/* Idle Minutes (shown when startMode === 'idle') */}
+                {screensaverSettings.startMode === 'idle' && (
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div>
+                      <p className="text-sm font-semibold text-[var(--text-primary)]">Idle Time</p>
+                      <p className="text-xs text-[var(--text-secondary)] mt-0.5">
+                        Activates after{' '}
+                        <span className="text-indigo-400 font-bold">{screensaverSettings.idleMinutes} minute{screensaverSettings.idleMinutes !== 1 ? 's' : ''}</span>{' '}
+                        of inactivity
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <button
+                        onClick={() =>
+                          setScreensaverSettings({ idleMinutes: Math.max(1, screensaverSettings.idleMinutes - 1) as IdleMinutesOption })
+                        }
+                        disabled={screensaverSettings.idleMinutes <= 1}
+                        className="w-9 h-9 rounded-xl bg-[var(--bg-secondary)] border border-[var(--border-color)] flex items-center justify-center text-[var(--text-primary)] hover:border-indigo-500/40 disabled:opacity-30 transition-all"
+                        aria-label="Decrease idle time"
+                      >
+                        <Minus className="w-4 h-4" />
+                      </button>
+
+                      <div className="grid grid-cols-5 gap-1.5">
+                        {([1, 2, 3, 5, 10] as IdleMinutesOption[]).map((min) => (
+                          <button
+                            key={min}
+                            onClick={() => setScreensaverSettings({ idleMinutes: min })}
+                            className={`w-9 h-9 rounded-xl text-xs font-bold transition-all border ${
+                              screensaverSettings.idleMinutes === min
+                                ? 'bg-indigo-600/20 border-indigo-500 text-indigo-400 shadow-sm shadow-indigo-500/20'
+                                : 'bg-[var(--bg-secondary)] border-[var(--border-color)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-indigo-500/30'
+                            }`}
+                          >
+                            {min}m
+                          </button>
+                        ))}
+                      </div>
+
+                      <button
+                        onClick={() =>
+                          setScreensaverSettings({ idleMinutes: Math.min(30, screensaverSettings.idleMinutes + 1) as IdleMinutesOption })
+                        }
+                        disabled={screensaverSettings.idleMinutes >= 30}
+                        className="w-9 h-9 rounded-xl bg-[var(--bg-secondary)] border border-[var(--border-color)] flex items-center justify-center text-[var(--text-primary)] hover:border-indigo-500/40 disabled:opacity-30 transition-all"
+                        aria-label="Increase idle time"
+                      >
+                        <Plus className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Schedule Time Window (shown when startMode === 'scheduled') */}
+                {screensaverSettings.startMode === 'scheduled' && (
+                  <div>
+                    <p className="text-sm font-semibold text-[var(--text-primary)] mb-2">Schedule Window</p>
+                    <p className="text-xs text-[var(--text-secondary)] mb-3">
+                      Screen saver activates during this time window (supports overnight ranges like 22:00 – 07:00)
+                    </p>
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                      <div>
+                        <label className="block text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-1">
+                          Start Time
+                        </label>
+                        <input
+                          type="time"
+                          value={screensaverSettings.scheduleStart}
+                          onChange={(e) => setScreensaverSettings({ scheduleStart: e.target.value })}
+                          className="px-3 py-2 rounded-xl bg-[var(--bg-secondary)] border border-[var(--border-color)] text-sm text-[var(--text-primary)] font-mono focus:outline-none focus:border-indigo-500"
+                        />
+                      </div>
+                      <div className="flex items-center gap-2 pt-5">
+                        <div className="w-8 h-px bg-[var(--border-color)]" />
+                        <span className="text-xs text-[var(--text-muted)]">to</span>
+                        <div className="w-8 h-px bg-[var(--border-color)]" />
+                      </div>
+                      <div>
+                        <label className="block text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-1">
+                          End Time
+                        </label>
+                        <input
+                          type="time"
+                          value={screensaverSettings.scheduleEnd}
+                          onChange={(e) => setScreensaverSettings({ scheduleEnd: e.target.value })}
+                          className="px-3 py-2 rounded-xl bg-[var(--bg-secondary)] border border-[var(--border-color)] text-sm text-[var(--text-primary)] font-mono focus:outline-none focus:border-indigo-500"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Always mode note */}
+                {screensaverSettings.startMode === 'always' && (
+                  <div className="p-3 rounded-xl bg-indigo-500/10 border border-indigo-500/20">
+                    <p className="text-xs text-indigo-400">
+                      The screen saver will activate a few seconds after any inactivity. Press any key or tap to dismiss.
+                    </p>
+                  </div>
+                )}
+
+                {/* Visual options */}
+                <div className="pt-2 border-t border-[var(--border-color)]">
+                  <p className="text-sm font-semibold text-[var(--text-primary)] mb-3">Display Options</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {/* Fullscreen toggle */}
+                    <div className="flex items-center justify-between p-3 rounded-xl bg-[var(--bg-secondary)] border border-[var(--border-color)]">
+                      <div>
+                        <p className="text-xs font-semibold text-[var(--text-primary)]">Fullscreen</p>
+                        <p className="text-[10px] text-[var(--text-muted)]">Hide browser UI</p>
+                      </div>
+                      <button
+                        onClick={() => setScreensaverSettings({ fullscreen: !screensaverSettings.fullscreen })}
+                        className={`relative inline-flex h-6 items-center rounded-full transition-colors ${
+                          screensaverSettings.fullscreen ? 'bg-indigo-600' : 'bg-[var(--bg-primary)] border border-[var(--border-color)]'
+                        }`}
+                        style={{ width: '44px' }}
+                        role="switch"
+                        aria-checked={screensaverSettings.fullscreen}
+                      >
+                        <span
+                          className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+                            screensaverSettings.fullscreen ? 'translate-x-6' : 'translate-x-1'
+                          }`}
+                        />
+                      </button>
+                    </div>
+
+                    {/* Show seconds toggle */}
+                    <div className="flex items-center justify-between p-3 rounded-xl bg-[var(--bg-secondary)] border border-[var(--border-color)]">
+                      <div>
+                        <p className="text-xs font-semibold text-[var(--text-primary)]">Show Seconds</p>
+                        <p className="text-[10px] text-[var(--text-muted)]">Display ticking seconds</p>
+                      </div>
+                      <button
+                        onClick={() => setScreensaverSettings({ showSeconds: !screensaverSettings.showSeconds })}
+                        className={`relative inline-flex h-6 items-center rounded-full transition-colors ${
+                          screensaverSettings.showSeconds ? 'bg-indigo-600' : 'bg-[var(--bg-primary)] border border-[var(--border-color)]'
+                        }`}
+                        style={{ width: '44px' }}
+                        role="switch"
+                        aria-checked={screensaverSettings.showSeconds}
+                      >
+                        <span
+                          className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+                            screensaverSettings.showSeconds ? 'translate-x-6' : 'translate-x-1'
+                          }`}
+                        />
+                      </button>
+                    </div>
+
+                    {/* Show date toggle */}
+                    <div className="flex items-center justify-between p-3 rounded-xl bg-[var(--bg-secondary)] border border-[var(--border-color)]">
+                      <div>
+                        <p className="text-xs font-semibold text-[var(--text-primary)]">Show Date</p>
+                        <p className="text-[10px] text-[var(--text-muted)]">Display date below clock</p>
+                      </div>
+                      <button
+                        onClick={() => setScreensaverSettings({ showDate: !screensaverSettings.showDate })}
+                        className={`relative inline-flex h-6 items-center rounded-full transition-colors ${
+                          screensaverSettings.showDate ? 'bg-indigo-600' : 'bg-[var(--bg-primary)] border border-[var(--border-color)]'
+                        }`}
+                        style={{ width: '44px' }}
+                        role="switch"
+                        aria-checked={screensaverSettings.showDate}
+                      >
+                        <span
+                          className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+                            screensaverSettings.showDate ? 'translate-x-6' : 'translate-x-1'
+                          }`}
+                        />
+                      </button>
+                    </div>
+
+                    {/* Keep awake toggle */}
+                    <div className="flex items-center justify-between p-3 rounded-xl bg-[var(--bg-secondary)] border border-[var(--border-color)]">
+                      <div>
+                        <p className="text-xs font-semibold text-[var(--text-primary)]">Keep Awake</p>
+                        <p className="text-[10px] text-[var(--text-muted)]">Prevent display sleep</p>
+                      </div>
+                      <button
+                        onClick={() => setScreensaverSettings({ keepAwake: !screensaverSettings.keepAwake })}
+                        className={`relative inline-flex h-6 items-center rounded-full transition-colors ${
+                          screensaverSettings.keepAwake ? 'bg-indigo-600' : 'bg-[var(--bg-primary)] border border-[var(--border-color)]'
+                        }`}
+                        style={{ width: '44px' }}
+                        role="switch"
+                        aria-checked={screensaverSettings.keepAwake}
+                      >
+                        <span
+                          className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+                            screensaverSettings.keepAwake ? 'translate-x-6' : 'translate-x-1'
+                          }`}
+                        />
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
 
             {!screensaverSettings.enabled && (
               <p className="text-xs text-[var(--text-muted)] italic">
-                Screensaver is currently disabled. Enable it to activate the fullscreen clock on idle.
+                Screen saver is currently disabled. Enable it to access all options.
               </p>
             )}
           </div>

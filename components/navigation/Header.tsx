@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Sun, Moon, Monitor, Clock, Download, Wifi, WifiOff, X, Smartphone, Globe, CheckCircle } from 'lucide-react';
+import { Sun, Moon, Monitor, Clock, Download, Wifi, WifiOff, X, Smartphone, Globe, CheckCircle, MonitorPlay } from 'lucide-react';
 import { ThemeMode } from '@/hooks/useTheme';
 
 interface HeaderProps {
@@ -9,9 +9,11 @@ interface HeaderProps {
   setTheme: (mode: ThemeMode) => void;
   is24Hour: boolean;
   toggle24Hour: () => void;
+  /** Optional callback to immediately launch the screen saver. */
+  onActivateScreensaver?: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ theme, setTheme, is24Hour, toggle24Hour }) => {
+export const Header: React.FC<HeaderProps> = ({ theme, setTheme, is24Hour, toggle24Hour, onActivateScreensaver }) => {
   const [isOnline, setIsOnline] = useState(true);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [isStandalone, setIsStandalone] = useState(false);
@@ -173,6 +175,18 @@ export const Header: React.FC<HeaderProps> = ({ theme, setTheme, is24Hour, toggl
 
           {/* Action Controls */}
           <div className="flex items-center gap-2 sm:gap-3">
+
+            {/* Screen Saver quick-launch */}
+            {onActivateScreensaver && (
+              <button
+                onClick={onActivateScreensaver}
+                className="p-2 rounded-xl bg-[var(--bg-secondary)] border border-[var(--border-color)] hover:border-indigo-500/50 text-[var(--text-primary)] transition-all shadow-sm"
+                title="Activate Screen Saver"
+                aria-label="Activate Screen Saver"
+              >
+                <MonitorPlay className="w-4 h-4 text-indigo-400" />
+              </button>
+            )}
 
             {/* Install / Download App Button */}
             {!isStandalone && (

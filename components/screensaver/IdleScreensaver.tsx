@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback, useRef } from 'react';
+import { ScreensaverSettings } from '@/hooks/useIdleScreensaver';
 
 interface IdleScreensaverProps {
   hours: string;
@@ -10,6 +11,7 @@ interface IdleScreensaverProps {
   fullDateStr: string;
   timezoneName: string;
   is24Hour: boolean;
+  settings: ScreensaverSettings;
   onDismiss: () => void;
 }
 
@@ -21,9 +23,87 @@ export const IdleScreensaver: React.FC<IdleScreensaverProps> = ({
   fullDateStr,
   timezoneName,
   is24Hour,
+  settings,
   onDismiss,
 }) => {
-  // Dismiss on any key press
+  const wakeLockRef = useRef<WakeLockSentinel | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // ── Wake Lock ────────────────────────────────────────────────────────────────
+  const requestWakeLock = useCallback(async () => {
+    if (!settings.keepAwake) return;
+    try {
+      if ('wakeLock' in navigator) {
+        wakeLockRef.current = await (navigator as any).wakeLock.request('screen');
+        wakeLockRef.current?.addEventListener('release', () => {
+          wakeLockRef.current = null;
+        });
+      }
+    } catch {
+      // Wake Lock not available or denied — fail silently
+    }
+  }, [settings.keepAwake]);
+
+  const releaseWakeLock = useCallback(async () => {
+    try {
+      await wakeLockRef.current?.release();
+      wakeLockRef.current = null;
+    } catch {}
+  }, []);
+
+  // Re-acquire wake lock when the page becomes visible again
+  useEffect(() => {
+    if (!settings.keepAwake) return;
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && !wakeLockRef.current) {
+        requestWakeLock();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [settings.keepAwake, requestWakeLock]);
+
+  // ── Fullscreen ───────────────────────────────────────────────────────────────
+  const enterFullscreen = useCallback(async () => {
+    if (!settings.fullscreen) return;
+    try {
+      const el = document.documentElement;
+      if (el.requestFullscreen) {
+        await el.requestFullscreen();
+      } else if ((el as any).webkitRequestFullscreen) {
+        await (el as any).webkitRequestFullscreen();
+      }
+    } catch {
+      // Fullscreen blocked by browser — silently ignore
+    }
+  }, [settings.fullscreen]);
+
+  const exitFullscreen = useCallback(async () => {
+    try {
+      if (document.fullscreenElement) {
+        if (document.exitFullscreen) {
+          await document.exitFullscreen();
+        } else if ((document as any).webkitExitFullscreen) {
+          await (document as any).webkitExitFullscreen();
+        }
+      }
+    } catch {}
+  }, []);
+
+  // ── Mount / Unmount lifecycle ────────────────────────────────────────────────
+  useEffect(() => {
+    requestWakeLock();
+    enterFullscreen();
+
+    return () => {
+      releaseWakeLock();
+      exitFullscreen();
+    };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Keyboard exit ────────────────────────────────────────────────────────────
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
       e.preventDefault();
@@ -37,13 +117,19 @@ export const IdleScreensaver: React.FC<IdleScreensaverProps> = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyDown]);
 
+  // ── Click/Tap exit ───────────────────────────────────────────────────────────
+  const handleDismiss = useCallback(() => {
+    onDismiss();
+  }, [onDismiss]);
+
   return (
     <div
+      ref={containerRef}
       className="fixed inset-0 z-[9999] flex flex-col items-center justify-center cursor-pointer select-none overflow-hidden"
       style={{ background: 'radial-gradient(ellipse at 50% 40%, #0a1628 0%, #04080f 100%)' }}
-      onClick={onDismiss}
+      onClick={handleDismiss}
       role="button"
-      aria-label="Screensaver — click or press any key to dismiss"
+      aria-label="Screensaver — tap or press any key to exit"
       tabIndex={0}
     >
       {/* Animated ambient glow blobs */}
@@ -102,17 +188,19 @@ export const IdleScreensaver: React.FC<IdleScreensaverProps> = ({
           }}
         >
           {hours}:{minutes}
-          <span
-            style={{
-              fontSize: 'clamp(2rem, 8vw, 6rem)',
-              background: 'linear-gradient(135deg, #93c5fd 0%, #818cf8 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
-            }}
-          >
-            :{seconds}
-          </span>
+          {settings.showSeconds && (
+            <span
+              style={{
+                fontSize: 'clamp(2rem, 8vw, 6rem)',
+                background: 'linear-gradient(135deg, #93c5fd 0%, #818cf8 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+              }}
+            >
+              :{seconds}
+            </span>
+          )}
           {!is24Hour && dayPeriod && (
             <span
               className="ml-4 font-sans"
@@ -130,41 +218,48 @@ export const IdleScreensaver: React.FC<IdleScreensaverProps> = ({
         </div>
 
         {/* Date + timezone */}
-        <div className="flex flex-wrap items-center justify-center gap-3 mt-2">
-          <div
-            className="px-5 py-2 rounded-full border text-sm font-semibold tracking-wide"
-            style={{
-              background: 'rgba(59,130,246,0.08)',
-              borderColor: 'rgba(96,165,250,0.2)',
-              color: '#93c5fd',
-              backdropFilter: 'blur(8px)',
-            }}
-          >
-            {fullDateStr}
+        {settings.showDate && (
+          <div className="flex flex-wrap items-center justify-center gap-3 mt-2">
+            <div
+              className="px-5 py-2 rounded-full border text-sm font-semibold tracking-wide"
+              style={{
+                background: 'rgba(59,130,246,0.08)',
+                borderColor: 'rgba(96,165,250,0.2)',
+                color: '#93c5fd',
+                backdropFilter: 'blur(8px)',
+              }}
+            >
+              {fullDateStr}
+            </div>
+            <div
+              className="px-5 py-2 rounded-full border text-sm font-semibold tracking-wide"
+              style={{
+                background: 'rgba(129,140,248,0.08)',
+                borderColor: 'rgba(165,180,252,0.2)',
+                color: '#a5b4fc',
+                backdropFilter: 'blur(8px)',
+              }}
+            >
+              {timezoneName || 'Local Time'}
+            </div>
           </div>
-          <div
-            className="px-5 py-2 rounded-full border text-sm font-semibold tracking-wide"
-            style={{
-              background: 'rgba(129,140,248,0.08)',
-              borderColor: 'rgba(165,180,252,0.2)',
-              color: '#a5b4fc',
-              backdropFilter: 'blur(8px)',
-            }}
-          >
-            {timezoneName || 'Local Time'}
-          </div>
-        </div>
+        )}
       </div>
 
       {/* Dismiss hint */}
       <div
-        className="absolute bottom-8 text-xs font-medium tracking-widest uppercase"
-        style={{
-          color: 'rgba(148,163,184,0.4)',
-          animation: 'ss-blink 3s ease-in-out infinite',
-        }}
+        className="absolute bottom-8 flex flex-col items-center gap-2"
+        style={{ color: 'rgba(148,163,184,0.4)' }}
       >
-        Click or press any key to dismiss
+        <p
+          className="text-xs font-medium tracking-widest uppercase"
+          style={{ animation: 'ss-blink 3s ease-in-out infinite' }}
+        >
+          Tap · Click · Press any key to exit
+        </p>
+        <p className="text-[10px] font-mono" style={{ color: 'rgba(148,163,184,0.25)' }}>
+          ESC to exit · Screen Saver Mode
+        </p>
       </div>
 
       {/* Keyframe styles */}

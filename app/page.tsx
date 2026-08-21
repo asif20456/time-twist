@@ -36,7 +36,13 @@ export default function Home() {
     mounted: clockMounted
   } = useClock();
   const { theme, setTheme, accent, setAccent, mounted: themeMounted } = useTheme();
-  const { isIdle, settings: screensaverSettings, setSettings: setScreensaverSettings, dismiss } = useIdleScreensaver();
+  const {
+    isIdle,
+    settings: screensaverSettings,
+    setSettings: setScreensaverSettings,
+    dismiss,
+    activateManually,
+  } = useIdleScreensaver();
 
   // Keyboard shortcuts
   useKeyboardShortcuts({ setActiveTab, toggle24Hour });
@@ -61,6 +67,7 @@ export default function Home() {
         setTheme={setTheme}
         is24Hour={is24Hour}
         toggle24Hour={toggle24Hour}
+        onActivateScreensaver={activateManually}
       />
 
       {/* Main View Area */}
@@ -154,6 +161,7 @@ export default function Home() {
           fullDateStr={formatted.fullDateStr}
           timezoneName={formatted.timezoneName}
           is24Hour={is24Hour}
+          settings={screensaverSettings}
           onDismiss={dismiss}
         />
       )}
