@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Settings as SettingsIcon, Sun, Moon, Monitor, Clock, Volume2, Trash2, CheckCircle, ShieldCheck, Sparkles, Calendar, RotateCcw, Sliders, Download, Wifi, WifiOff, Smartphone, Globe, Search, Timer, Minus, Plus } from 'lucide-react';
-import { ThemeMode } from '@/hooks/useTheme';
+import { ThemeMode, ThemeAccent, ACCENT_PRESETS } from '@/hooks/useTheme';
 import { soundManager } from '@/lib/audio';
 import { useOnlineStatus } from '@/hooks/useOnlineStatus';
 import { ALL_TIMEZONES, POPULAR_TIMEZONES, getTimezoneOffsetFormatted } from '@/lib/timezones';
@@ -11,6 +11,8 @@ import { ScreensaverSettings } from '@/hooks/useIdleScreensaver';
 interface SettingsProps {
   theme: ThemeMode;
   setTheme: (theme: ThemeMode) => void;
+  accent: ThemeAccent;
+  setAccent: (accent: ThemeAccent) => void;
   is24Hour: boolean;
   toggle24Hour: () => void;
   isManualTime?: boolean;
@@ -26,6 +28,8 @@ interface SettingsProps {
 export const Settings: React.FC<SettingsProps> = ({
   theme,
   setTheme,
+  accent,
+  setAccent,
   is24Hour,
   toggle24Hour,
   isManualTime = false,
@@ -187,6 +191,34 @@ export const Settings: React.FC<SettingsProps> = ({
                     <span>{t.label}</span>
                   </div>
                   {isSelected && <CheckCircle className="w-4 h-4 text-blue-400 flex-shrink-0" />}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Accent Color Settings */}
+        <div className="card-glass p-5 sm:p-6">
+          <h3 className="text-base font-bold text-[var(--text-primary)] mb-1">Accent Color</h3>
+          <p className="text-xs text-[var(--text-secondary)] mb-4">Choose a color accent for buttons, glows, and highlights</p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            {ACCENT_PRESETS.map((a) => {
+              const isSelected = accent === a.id;
+              return (
+                <button
+                  key={a.id}
+                  onClick={() => setAccent(a.id)}
+                  className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${
+                    isSelected
+                      ? 'border-blue-500 bg-[var(--bg-secondary)] shadow-md'
+                      : 'border-[var(--border-color)] bg-[var(--bg-secondary)] hover:border-blue-500/30'
+                  }`}
+                >
+                  <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${a.gradient} flex-shrink-0 shadow-sm`} />
+                  <div className="text-left">
+                    <p className={`text-xs font-bold ${isSelected ? 'text-[var(--text-primary)]' : 'text-[var(--text-secondary)]'}`}>{a.label}</p>
+                  </div>
+                  {isSelected && <CheckCircle className="w-4 h-4 text-blue-400 flex-shrink-0 ml-auto" />}
                 </button>
               );
             })}

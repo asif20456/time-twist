@@ -90,6 +90,12 @@ export default function RootLayout({
                     document.documentElement.classList.add('light');
                     document.documentElement.classList.remove('dark');
                   }
+                  var accent = localStorage.getItem('time-twist-accent') || 'ocean';
+                  var accents = ['emerald', 'sunset', 'royal', 'rose', 'cyan'];
+                  accents.forEach(function(a) { document.documentElement.classList.remove('accent-' + a); });
+                  if (accent !== 'ocean' && accents.indexOf(accent) !== -1) {
+                    document.documentElement.classList.add('accent-' + accent);
+                  }
                 } catch (e) {}
               })();
             `,

@@ -2,7 +2,7 @@ import { MetadataRoute } from 'next';
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'Time Twist — Smart Clock & Time Tools',
+    name: 'Time Twist',
     short_name: 'Time Twist',
     description: 'A beautiful, lightweight, feature-rich clock, world clock, stopwatch, countdown timer, Pomodoro, and alarm application. Works fully offline as a PWA.',
     start_url: '/',
@@ -70,6 +70,11 @@ export default function manifest(): MetadataRoute.Manifest {
         type: 'image/png',
       },
       {
+        src: '/icons/icon-180.png',
+        sizes: '180x180',
+        type: 'image/png',
+      },
+      {
         src: '/icons/icon-192.png',
         sizes: '192x192',
         type: 'image/png',
@@ -99,6 +104,12 @@ export default function manifest(): MetadataRoute.Manifest {
         purpose: 'maskable',
       },
     ],
-    screenshots: [],
+    screenshots: [
+      {
+        src: '/icons/icon-512.png',
+        sizes: '512x512',
+        type: 'image/png',
+      },
+    ],
   };
 }

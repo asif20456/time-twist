@@ -35,7 +35,7 @@ export default function Home() {
     formatted,
     mounted: clockMounted
   } = useClock();
-  const { theme, setTheme, mounted: themeMounted } = useTheme();
+  const { theme, setTheme, accent, setAccent, mounted: themeMounted } = useTheme();
   const { isIdle, settings: screensaverSettings, setSettings: setScreensaverSettings, dismiss } = useIdleScreensaver();
 
   // Keyboard shortcuts
@@ -97,6 +97,8 @@ export default function Home() {
             <Settings
               theme={theme}
               setTheme={setTheme}
+              accent={accent}
+              setAccent={setAccent}
               is24Hour={is24Hour}
               toggle24Hour={toggle24Hour}
               isManualTime={isManualTime}
