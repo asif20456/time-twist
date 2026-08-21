@@ -11,10 +11,12 @@ import { AlarmManager } from '@/components/alarm/AlarmManager';
 import { PomodoroTimer } from '@/components/pomodoro/PomodoroTimer';
 import { DateTimeConverter } from '@/components/converter/DateTimeConverter';
 import { Settings } from '@/components/settings/Settings';
+import { IdleScreensaver } from '@/components/screensaver/IdleScreensaver';
 import { useClock } from '@/hooks/useClock';
 import { useTheme } from '@/hooks/useTheme';
 import { useOnlineStatus } from '@/hooks/useOnlineStatus';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
+import { useIdleScreensaver } from '@/hooks/useIdleScreensaver';
 import { Wifi, WifiOff, Hourglass } from 'lucide-react';
 
 export default function Home() {
@@ -30,9 +32,11 @@ export default function Home() {
     userTimezone,
     setTimezone,
     resetTimezone,
+    formatted,
     mounted: clockMounted
   } = useClock();
   const { theme, setTheme, mounted: themeMounted } = useTheme();
+  const { isIdle, settings: screensaverSettings, setSettings: setScreensaverSettings, dismiss } = useIdleScreensaver();
 
   // Keyboard shortcuts
   useKeyboardShortcuts({ setActiveTab, toggle24Hour });
@@ -101,6 +105,8 @@ export default function Home() {
               userTimezone={userTimezone}
               setTimezone={setTimezone}
               resetTimezone={resetTimezone}
+              screensaverSettings={screensaverSettings}
+              setScreensaverSettings={setScreensaverSettings}
             />
           )}
         </div>
@@ -136,6 +142,19 @@ export default function Home() {
         </div>
       </footer>
 
+      {/* Idle Screensaver Overlay */}
+      {isIdle && (
+        <IdleScreensaver
+          hours={formatted.hours}
+          minutes={formatted.minutes}
+          seconds={formatted.seconds}
+          dayPeriod={formatted.dayPeriod}
+          fullDateStr={formatted.fullDateStr}
+          timezoneName={formatted.timezoneName}
+          is24Hour={is24Hour}
+          onDismiss={dismiss}
+        />
+      )}
     </div>
   );
 }

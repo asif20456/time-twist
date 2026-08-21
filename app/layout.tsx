@@ -99,62 +99,6 @@ export default function RootLayout({
       <body className="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] antialiased selection:bg-blue-500 selection:text-white pb-16 md:pb-0">
         {children}
 
-        {/* Service Worker Registration */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              if ('serviceWorker' in navigator) {
-                window.addEventListener('load', function() {
-                  navigator.serviceWorker.register('/sw.js', { scope: '/' })
-                    .then(function(registration) {
-                      console.log('[PWA] Service Worker registered with scope:', registration.scope);
-                      
-                      // Check for updates every hour
-                      setInterval(function() {
-                        registration.update();
-                      }, 60 * 60 * 1000);
-                      
-                      // Listen for new service worker waiting
-                      if (registration.waiting) {
-                        registration.waiting.postMessage('skipWaiting');
-                      }
-                      
-                      registration.addEventListener('updatefound', function() {
-                        var newWorker = registration.installing;
-                        if (newWorker) {
-                          newWorker.addEventListener('statechange', function() {
-                            if (newWorker.state === 'activated') {
-                              console.log('[PWA] New Service Worker activated');
-                              // Reload to use new cache
-                              window.location.reload();
-                            }
-                          });
-                        }
-                      });
-                    })
-                    .catch(function(err) {
-                      console.warn('[PWA] Service Worker registration failed:', err);
-                    });
-                });
-              }
-
-              // Handle install prompt
-              var deferredPrompt = null;
-              window.addEventListener('beforeinstallprompt', function(e) {
-                e.preventDefault();
-                deferredPrompt = e;
-                window.__pwaInstallPrompt = e;
-                console.log('[PWA] Install prompt available');
-              });
-
-              window.addEventListener('appinstalled', function() {
-                console.log('[PWA] App installed successfully');
-                deferredPrompt = null;
-                window.__pwaInstallPrompt = null;
-              });
-            `,
-          }}
-        />
       </body>
     </html>
   );
