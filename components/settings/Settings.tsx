@@ -1,10 +1,10 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Settings as SettingsIcon, Sun, Moon, Monitor, Clock, Volume2, Trash2, CheckCircle, ShieldCheck, Sparkles, Calendar, RotateCcw, Sliders, Download, Wifi, WifiOff, Smartphone, Globe, Search, Timer, Minus, Plus } from 'lucide-react';
+import { Settings as SettingsIcon, Sun, Moon, Monitor, Clock, Volume2, Trash2, CheckCircle, ShieldCheck, Sparkles, Calendar, RotateCcw, Sliders, Globe, Search, Timer, Minus, Plus } from 'lucide-react';
 import { ThemeMode, ThemeAccent, ACCENT_PRESETS } from '@/hooks/useTheme';
 import { soundManager } from '@/lib/audio';
-import { useOnlineStatus } from '@/hooks/useOnlineStatus';
+
 import { ALL_TIMEZONES, POPULAR_TIMEZONES, getTimezoneOffsetFormatted } from '@/lib/timezones';
 import { ScreensaverSettings, IdleMinutesOption } from '@/hooks/useIdleScreensaver';
 
@@ -41,7 +41,6 @@ export const Settings: React.FC<SettingsProps> = ({
   screensaverSettings,
   setScreensaverSettings,
 }) => {
-  const isOnline = useOnlineStatus();
   const todayStr = new Date().toISOString().split('T')[0];
   const nowTimeStr = `${String(new Date().getHours()).padStart(2, '0')}:${String(new Date().getMinutes()).padStart(2, '0')}`;
 
@@ -50,35 +49,6 @@ export const Settings: React.FC<SettingsProps> = ({
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [tzSearch, setTzSearch] = useState('');
   const [tzSuccess, setTzSuccess] = useState(false);
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
-  const [isStandalone, setIsStandalone] = useState(false);
-
-  useEffect(() => {
-    if (window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone) {
-      setIsStandalone(true);
-    }
-
-    const handleBeforeInstall = (e: Event) => {
-      e.preventDefault();
-      setDeferredPrompt(e);
-    };
-
-    window.addEventListener('beforeinstallprompt', handleBeforeInstall);
-    return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
-  }, []);
-
-  const handleInstallClick = async () => {
-    if (deferredPrompt) {
-      deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-      if (outcome === 'accepted') {
-        setDeferredPrompt(null);
-      }
-    } else {
-      alert('To install Time Twist:\n\n• On Chrome/Edge: Click the Install icon in the address bar.\n• On iOS Safari: Tap Share -> Add to Home Screen.');
-    }
-  };
-
   const handleTestSound = () => {
     soundManager.playChime();
   };
@@ -120,50 +90,6 @@ export const Settings: React.FC<SettingsProps> = ({
       </div>
 
       <div className="space-y-4 sm:space-y-6">
-
-        {/* Online / Offline & App Download Card */}
-        <div className="card-glass p-5 sm:p-6">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-[var(--border-color)] mb-4">
-            <div>
-              <div className="flex items-center gap-2">
-                <Download className="w-5 h-5 text-blue-400" />
-                <h3 className="text-base font-bold text-[var(--text-primary)]">App Installation & Connectivity</h3>
-              </div>
-              <p className="text-xs text-[var(--text-secondary)] mt-0.5">
-                Time Twist works 100% offline as a Progressive Web App (PWA)
-              </p>
-            </div>
-
-            {isOnline ? (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-semibold text-xs flex-shrink-0">
-                <Wifi className="w-3.5 h-3.5" /> Online
-              </span>
-            ) : (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-500/10 text-red-400 border border-red-500/20 font-semibold text-xs flex-shrink-0">
-                <WifiOff className="w-3.5 h-3.5" /> Offline Mode
-              </span>
-            )}
-          </div>
-
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div className="text-xs text-[var(--text-secondary)] space-y-1">
-              <p className="font-semibold text-[var(--text-primary)]">
-                {isStandalone ? '✓ App is currently running in Standalone PWA mode.' : 'Install Time Twist on your Desktop or Phone home screen.'}
-              </p>
-              <p>Clocks, Stopwatch, Countdown Timers, and Alarms run natively offline without internet.</p>
-            </div>
-
-            {!isStandalone && (
-              <button
-                onClick={handleInstallClick}
-                className="btn-primary py-2.5 px-5 text-xs sm:text-sm flex-shrink-0"
-              >
-                <Download className="w-4 h-4" />
-                <span>Install / Download PWA</span>
-              </button>
-            )}
-          </div>
-        </div>
 
         {/* Theme Settings */}
         <div className="card-glass p-5 sm:p-6">

@@ -143,7 +143,7 @@ export default function Home() {
               </span>
             ) : (
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-500/10 text-red-400 border border-red-500/20 font-semibold text-[11px]">
-                <WifiOff className="w-3 h-3" /> Offline Mode (Cached PWA)
+                <WifiOff className="w-3 h-3" /> Offline Mode
               </span>
             )}
           </div>

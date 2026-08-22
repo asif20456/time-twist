@@ -6,8 +6,7 @@ export const metadata: Metadata = {
   description: 'A beautiful, lightweight, feature-rich clock, world clock, stopwatch, countdown timer, Pomodoro, and alarm application. Works fully offline.',
   applicationName: 'Time Twist',
   authors: [{ name: 'Time Twist Team' }],
-  keywords: ['clock', 'world clock', 'stopwatch', 'timer', 'alarm', 'pomodoro', 'pwa', 'time twist', 'offline', 'productivity'],
-  manifest: '/manifest.json',
+  keywords: ['clock', 'world clock', 'stopwatch', 'timer', 'alarm', 'pomodoro', 'time twist', 'offline', 'productivity'],
   icons: {
     icon: [
       { url: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
@@ -16,12 +15,6 @@ export const metadata: Metadata = {
     apple: [
       { url: '/icons/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
     ],
-
-  },
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: 'black-translucent',
-    title: 'Time Twist',
   },
   openGraph: {
     title: 'Time Twist — Smart Clock & Time Tools',
@@ -40,11 +33,6 @@ export const metadata: Metadata = {
     telephone: false,
   },
   other: {
-    'mobile-web-app-capable': 'yes',
-    'apple-mobile-web-app-capable': 'yes',
-    'apple-mobile-web-app-status-bar-style': 'black-translucent',
-    'msapplication-TileColor': '#3b82f6',
-    'msapplication-TileImage': '/icons/icon-144.png',
     'theme-color': '#3b82f6',
   },
 };
@@ -74,6 +62,19 @@ export default function RootLayout({
         <link rel="icon" type="image/x-icon" href="/favicon.ico" />
         <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png" />
         <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png" />
+
+        {/* Service Worker Registration */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              if ('serviceWorker' in navigator) {
+                window.addEventListener('load', function() {
+                  navigator.serviceWorker.register('/sw.js').catch(function() {});
+                });
+              }
+            `,
+          }}
+        />
 
         {/* Anti-FOUC theme script */}
         <script

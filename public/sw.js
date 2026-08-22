@@ -1,1 +1,86 @@
-if(!self.define){let e,s={};const t=(t,n)=>(t=new URL(t+".js",n).href,s[t]||new Promise(s=>{if("document"in self){const e=document.createElement("script");e.src=t,e.onload=s,document.head.appendChild(e)}else e=t,importScripts(t),s()}).then(()=>{let e=s[t];if(!e)throw new Error(`Module ${t} didn’t register its module`);return e}));self.define=(n,i)=>{const c=e||("document"in self?document.currentScript.src:"")||location.href;if(s[c])return;let r={};const a=e=>t(e,c),o={module:{uri:c},exports:r,require:a};s[c]=Promise.all(n.map(e=>o[e]||a(e))).then(e=>(i(...e),r))}}define(["./workbox-f52fd911"],function(e){"use strict";importScripts("fallback-eVm0123bKTqog60Bl_HxS.js"),self.skipWaiting(),e.clientsClaim(),e.precacheAndRoute([{url:"/_next/static/chunks/117-1739f9219a4e1ce7.js",revision:"eVm0123bKTqog60Bl_HxS"},{url:"/_next/static/chunks/210-26217e1a10b1fadd.js",revision:"eVm0123bKTqog60Bl_HxS"},{url:"/_next/static/chunks/app/_not-found/page-6d4614157fff2d5f.js",revision:"eVm0123bKTqog60Bl_HxS"},{url:"/_next/static/chunks/app/layout-64b755fd2c7dc3de.js",revision:"eVm0123bKTqog60Bl_HxS"},{url:"/_next/static/chunks/app/offline/page-75508628f5260b1e.js",revision:"eVm0123bKTqog60Bl_HxS"},{url:"/_next/static/chunks/app/page-b7ba5cf6743f509d.js",revision:"eVm0123bKTqog60Bl_HxS"},{url:"/_next/static/chunks/fd9d1056-d17313c03983f67e.js",revision:"eVm0123bKTqog60Bl_HxS"},{url:"/_next/static/chunks/framework-f66176bb897dc684.js",revision:"eVm0123bKTqog60Bl_HxS"},{url:"/_next/static/chunks/main-aaae01f1c14fa764.js",revision:"eVm0123bKTqog60Bl_HxS"},{url:"/_next/static/chunks/main-app-9fc16de0b22f6ee9.js",revision:"eVm0123bKTqog60Bl_HxS"},{url:"/_next/static/chunks/pages/_app-72b849fbd24ac258.js",revision:"eVm0123bKTqog60Bl_HxS"},{url:"/_next/static/chunks/pages/_error-7ba65e1336b92748.js",revision:"eVm0123bKTqog60Bl_HxS"},{url:"/_next/static/chunks/polyfills-42372ed130431b0a.js",revision:"846118c33b2c0e922d7b3a7676f81f6f"},{url:"/_next/static/chunks/webpack-c8441f2d519541e3.js",revision:"eVm0123bKTqog60Bl_HxS"},{url:"/_next/static/css/be07d31ca768411c.css",revision:"be07d31ca768411c"},{url:"/_next/static/eVm0123bKTqog60Bl_HxS/_buildManifest.js",revision:"c155cce658e53418dec34664328b51ac"},{url:"/_next/static/eVm0123bKTqog60Bl_HxS/_ssgManifest.js",revision:"b6652df95db52feb4daf4eca35380933"},{url:"/offline",revision:"eVm0123bKTqog60Bl_HxS"}],{ignoreURLParametersMatching:[]}),e.cleanupOutdatedCaches(),e.registerRoute("/",new e.NetworkFirst({cacheName:"start-url",plugins:[{cacheWillUpdate:async({request:e,response:s,event:t,state:n})=>s&&"opaqueredirect"===s.type?new Response(s.body,{status:200,statusText:"OK",headers:s.headers}):s},{handlerDidError:async({request:e})=>self.fallback(e)}]}),"GET"),e.registerRoute(/^https:\/\/fonts\.googleapis\.com\/.*/i,new e.CacheFirst({cacheName:"google-fonts-stylesheets",plugins:[new e.ExpirationPlugin({maxEntries:10,maxAgeSeconds:31536e3}),{handlerDidError:async({request:e})=>self.fallback(e)}]}),"GET"),e.registerRoute(/^https:\/\/fonts\.gstatic\.com\/.*/i,new e.CacheFirst({cacheName:"google-fonts-webfonts",plugins:[new e.ExpirationPlugin({maxEntries:20,maxAgeSeconds:31536e3}),{handlerDidError:async({request:e})=>self.fallback(e)}]}),"GET"),e.registerRoute(/\.(?:js|css|woff|woff2|ttf|eot|png|jpg|jpeg|gif|webp|svg|ico)$/i,new e.CacheFirst({cacheName:"static-assets",plugins:[new e.ExpirationPlugin({maxEntries:200,maxAgeSeconds:2592e3}),{handlerDidError:async({request:e})=>self.fallback(e)}]}),"GET"),e.registerRoute(/^https?:\/\/.+\/((?!api\/).)*$/i,new e.NetworkFirst({cacheName:"pages-cache",networkTimeoutSeconds:10,plugins:[new e.ExpirationPlugin({maxEntries:50,maxAgeSeconds:604800}),{handlerDidError:async({request:e})=>self.fallback(e)}]}),"GET")});
+const CACHE_NAME = 'time-twist-v1';
+const STATIC_ASSETS = [
+  '/',
+  '/favicon.ico',
+];
+
+// Install: pre-cache shell
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(STATIC_ASSETS))
+  );
+  self.skipWaiting();
+});
+
+// Activate: clean old caches
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys().then((keys) =>
+      Promise.all(
+        keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))
+      )
+    )
+  );
+  self.clients.claim();
+});
+
+// Fetch: network-first for pages, cache-first for static assets
+self.addEventListener('fetch', (event) => {
+  const { request } = event;
+  const url = new URL(request.url);
+
+  // Skip non-GET requests
+  if (request.method !== 'GET') return;
+
+  // Skip cross-origin requests (except Google Fonts)
+  if (url.origin !== self.location.origin && !url.hostname.includes('fonts.googleapis.com') && !url.hostname.includes('fonts.gstatic.com')) {
+    return;
+  }
+
+  // Google Fonts: cache-first
+  if (url.hostname.includes('fonts.googleapis.com') || url.hostname.includes('fonts.gstatic.com')) {
+    event.respondWith(
+      caches.open(CACHE_NAME).then((cache) =>
+        cache.match(request).then((cached) => {
+          if (cached) return cached;
+          return fetch(request).then((response) => {
+            if (response.ok) cache.put(request, response.clone());
+            return response;
+          }).catch(() => cached);
+        })
+      )
+    );
+    return;
+  }
+
+  // Static assets (JS, CSS, images): cache-first
+  if (/\.(?:js|css|woff|woff2|ttf|eot|png|jpg|jpeg|gif|webp|svg|ico|json)$/.test(url.pathname)) {
+    event.respondWith(
+      caches.open(CACHE_NAME).then((cache) =>
+        cache.match(request).then((cached) => {
+          if (cached) return cached;
+          return fetch(request).then((response) => {
+            if (response.ok) cache.put(request, response.clone());
+            return response;
+          }).catch(() => cached);
+        })
+      )
+    );
+    return;
+  }
+
+  // HTML pages: network-first with cache fallback
+  event.respondWith(
+    fetch(request)
+      .then((response) => {
+        if (response.ok) {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+        }
+        return response;
+      })
+      .catch(() =>
+        caches.match(request).then((cached) => cached || caches.match('/'))
+      )
+  );
+});
