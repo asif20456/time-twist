@@ -1,4 +1,4 @@
-const CACHE_NAME = 'time-twist-v1';
+const CACHE_NAME = 'time-twist-v2';
 const STATIC_ASSETS = [
   '/',
   '/favicon.ico',
@@ -12,12 +12,14 @@ self.addEventListener('install', (event) => {
   self.skipWaiting();
 });
 
-// Activate: clean old caches
+// Activate: clean ALL old caches (including stale workbox/next-pwa caches)
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
       Promise.all(
-        keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))
+        keys
+          .filter((key) => key !== CACHE_NAME)
+          .map((key) => caches.delete(key))
       )
     )
   );
@@ -29,8 +31,11 @@ self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
-  // Skip non-GET requests
+  // Skip non-GET requests (POST, WebSocket upgrades, etc.)
   if (request.method !== 'GET') return;
+
+  // Skip _next/ dev paths (HMR, hot reload, data routes)
+  if (url.pathname.startsWith('/_next/')) return;
 
   // Skip cross-origin requests (except Google Fonts)
   if (url.origin !== self.location.origin && !url.hostname.includes('fonts.googleapis.com') && !url.hostname.includes('fonts.gstatic.com')) {
@@ -54,7 +59,7 @@ self.addEventListener('fetch', (event) => {
   }
 
   // Static assets (JS, CSS, images): cache-first
-  if (/\.(?:js|css|woff|woff2|ttf|eot|png|jpg|jpeg|gif|webp|svg|ico|json)$/.test(url.pathname)) {
+  if (/\.(?:js|css|woff|woff2|ttf|eot|png|jpg|jpeg|gif|webp|svg|ico)$/.test(url.pathname)) {
     event.respondWith(
       caches.open(CACHE_NAME).then((cache) =>
         cache.match(request).then((cached) => {

@@ -66,27 +66,36 @@ export const IdleScreensaver: React.FC<IdleScreensaverProps> = ({
   }, [settings.keepAwake, requestWakeLock]);
 
   // ── Fullscreen ───────────────────────────────────────────────────────────────
-  const enterFullscreen = useCallback(async () => {
-    if (!settings.fullscreen) return;
+  // IMPORTANT: requestFullscreen() REQUIRES a direct user gesture (click/tap/keydown).
+  // Calling it from useEffect, onload, timers, etc. always throws a DOMException.
+  // We only enter fullscreen on the user's first interaction with the screensaver.
+  const hasEnteredFullscreen = useRef(false);
+
+  const enterFullscreen = useCallback(() => {
+    if (!settings.fullscreen || hasEnteredFullscreen.current) return;
     try {
       const el = document.documentElement;
       if (el.requestFullscreen) {
-        await el.requestFullscreen();
+        el.requestFullscreen().then(() => {
+          hasEnteredFullscreen.current = true;
+        }).catch(() => {});
       } else if ((el as any).webkitRequestFullscreen) {
-        await (el as any).webkitRequestFullscreen();
+        (el as any).webkitRequestFullscreen().then(() => {
+          hasEnteredFullscreen.current = true;
+        }).catch(() => {});
       }
     } catch {
-      // Fullscreen blocked by browser — silently ignore
+      // Fullscreen API not available — silently ignore
     }
   }, [settings.fullscreen]);
 
-  const exitFullscreen = useCallback(async () => {
+  const exitFullscreen = useCallback(() => {
     try {
       if (document.fullscreenElement) {
         if (document.exitFullscreen) {
-          await document.exitFullscreen();
+          document.exitFullscreen().catch(() => {});
         } else if ((document as any).webkitExitFullscreen) {
-          await (document as any).webkitExitFullscreen();
+          (document as any).webkitExitFullscreen().catch(() => {});
         }
       }
     } catch {}
@@ -95,7 +104,6 @@ export const IdleScreensaver: React.FC<IdleScreensaverProps> = ({
   // ── Mount / Unmount lifecycle ────────────────────────────────────────────────
   useEffect(() => {
     requestWakeLock();
-    enterFullscreen();
 
     return () => {
       releaseWakeLock();
@@ -103,13 +111,18 @@ export const IdleScreensaver: React.FC<IdleScreensaverProps> = ({
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── Keyboard exit ────────────────────────────────────────────────────────────
+  // ── Keyboard interaction ─────────────────────────────────────────────────────
+  // First keypress: enter fullscreen (user gesture ✅). Subsequent: dismiss.
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
       e.preventDefault();
+      if (settings.fullscreen && !hasEnteredFullscreen.current) {
+        enterFullscreen();
+        return;
+      }
       onDismiss();
     },
-    [onDismiss]
+    [onDismiss, enterFullscreen, settings.fullscreen]
   );
 
   useEffect(() => {
@@ -117,10 +130,15 @@ export const IdleScreensaver: React.FC<IdleScreensaverProps> = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyDown]);
 
-  // ── Click/Tap exit ───────────────────────────────────────────────────────────
+  // ── Click/Tap interaction ────────────────────────────────────────────────────
+  // First click: enter fullscreen (user gesture ✅). Subsequent: dismiss.
   const handleDismiss = useCallback(() => {
+    if (settings.fullscreen && !hasEnteredFullscreen.current) {
+      enterFullscreen();
+      return;
+    }
     onDismiss();
-  }, [onDismiss]);
+  }, [onDismiss, enterFullscreen, settings.fullscreen]);
 
   return (
     <div
